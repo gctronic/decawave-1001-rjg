@@ -21,7 +21,10 @@ class Decawave1001Driver:
         self.max_retry_count = 5    # Number of times to retry a failed message
         self.timestamp = time.time()
         self.spi = spidev.SpiDev()
-        self.data_ready_interrupt = GPIOInterrupt(ready_pin)
+        if ready_pin is not None:
+            self.data_ready_interrupt = GPIOInterrupt(ready_pin)
+        else:
+            self.data_ready_interrupt = None
         self._init_spi(spi_device)
         self._init_decawave()
 
@@ -32,7 +35,8 @@ class Decawave1001Driver:
 
     def _init_decawave(self):
         self.soft_reset()
-        self._enable_data_ready_pin()
+        if self.data_ready_interrupt is not None:
+            self._enable_data_ready_pin()
 
     def _enable_data_ready_pin(self):
         request = DwmInterruptConfigRequest(True, False)

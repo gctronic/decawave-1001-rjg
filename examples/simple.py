@@ -6,7 +6,7 @@ from decawave_1001_rjg import Decawave1001Driver, DwmLocationResponse
 
 class Simple:
     def __init__(self):
-        self.driver = Decawave1001Driver(22, 2)
+        self.driver = Decawave1001Driver(None, 0)
         # self.driver.reset()
 
     def main(self):
@@ -15,7 +15,8 @@ class Simple:
             self.get_config()
             count = 0
             while count < 10:
-                if self.driver.data_ready(50):
+                status = self.driver.get_status()
+                if status.location_ready:
                     self.get_loc()
                     self.get_pos()
                     count = count + 1
