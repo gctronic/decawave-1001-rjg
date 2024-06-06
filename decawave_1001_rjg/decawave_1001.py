@@ -2,13 +2,18 @@ import spidev
 import time
 
 from . import GPIOInterrupt
+from .messages.dwm_anchor_config_request import DwmAnchorConfigRequest
 from .messages.dwm_interrupt_config_request import DwmInterruptConfigRequest
 from .messages.dwm_config_response import DwmConfigResponse
+from .messages.dwm_label_set_request import DwmLabelSetRequest
 from .messages.dwm_location_response import DwmLocationResponse
+from .messages.dwm_panid_set_request import DwmPanIdSetRequest
 from .messages.dwm_position_response import DwmPositionResponse
+from .messages.dwm_position_set_request import DwmPositionSetRequest
 from .messages.dwm_request import DwmRequests
 from .messages.dwm_response import DwmResponse
 from .messages.dwm_status_response import DwmStatusResponse
+from .messages.dwm_tag_config_request import DwmTagConfigRequest
 from .messages.dwm_version_response import DwmVersionResponse
 from .messages.tlv_message import TlvMessage
 
@@ -31,7 +36,7 @@ class Decawave1001Driver:
     def _init_spi(self, spi_device: int):
         self.spi.open(0, spi_device)
         self.spi.mode = 0b00
-        self.spi.max_speed_hz = 8000000
+        self.spi.max_speed_hz = 1000000
 
     def _init_decawave(self):
         self.soft_reset()
@@ -45,7 +50,8 @@ class Decawave1001Driver:
     def close(self):
         """Closes the SPI connection. This must be called on shutdown."""
         self.spi.close()
-        self.data_ready_interrupt.close()
+        if self.data_ready_interrupt is not None:
+            self.data_ready_interrupt.close()
 
     def soft_reset(self):
         """Returns the DWM tag's state machine to Idle so it'll be ready for a new request.
@@ -90,6 +96,26 @@ class Decawave1001Driver:
     def get_loc(self) -> DwmLocationResponse:
         response = self._send_and_get_response(DwmRequests.dwm_loc_get)
         return DwmLocationResponse(response)
+
+    def config_anchor(self, initiator, ble_en):
+        request = DwmAnchorConfigRequest(initiator, ble_en)
+        self._send_and_get_response(request)
+    
+    def config_tag(self, ble_en):
+        request = DwmTagConfigRequest(ble_en)
+        self._send_and_get_response(request)
+
+    def set_pos(self, x, y, z):
+        request = DwmPositionSetRequest(x, y, z)
+        self._send_and_get_response(request)
+
+    def set_pan_id(self, id):
+        request = DwmPanIdSetRequest(id)
+        self._send_and_get_response(request)        
+
+    def set_label(self, name):
+        request = DwmLabelSetRequest(name)
+        self._send_and_get_response(request)   
 
     def _send_and_get_response(self, request: TlvMessage) -> bytes:
         retries = 0

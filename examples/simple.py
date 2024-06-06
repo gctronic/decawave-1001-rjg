@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from decawave_1001_rjg import Decawave1001Driver, DwmLocationResponse
@@ -14,12 +14,12 @@ class Simple:
             self.get_version()
             self.get_config()
             count = 0
-            while count < 10:
+            while 1:
                 status = self.driver.get_status()
                 if status.location_ready:
                     self.get_loc()
                     self.get_pos()
-                    count = count + 1
+                time.sleep(0.1)
         except (KeyboardInterrupt, SystemExit):
             pass
         finally:
